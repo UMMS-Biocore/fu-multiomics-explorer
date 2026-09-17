@@ -1,3 +1,7 @@
+# Viewing Multiomics Explorer App on UMass
+
+1. Navigate to `https://viafoundry.umassmed.edu/launcher/fulab`
+
 # Viewing Multiomics Explorer App on Foundry
 
 1. Navigate to `https://viafoundry.umassmed.edu/`

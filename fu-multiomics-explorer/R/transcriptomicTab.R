@@ -165,25 +165,44 @@ transcriptomicTabServer <- function(id) {
 		
 		ggplotDownloadPopoverServer('violin_download', violin, "boxplots_plot")
 		
+		sc_metadata = reactive({
+		  read.delim(clean_data_path('sc_transcriptomic_metadata.txt'), sep='\t', header=TRUE)
+		})
+		
 		metadata = reactive({
-			read.delim(clean_data_path('transcriptomic_metadata.txt'), sep='\t', header=TRUE)
+			read.delim(clean_data_path('bulk_transcriptomic_metadata.txt'), sep='\t', header=TRUE)
 		})
 		
-		metadataTableServer('metadata', metadata)
+		metadataTableServer('metadata', sc_metadata)
 		
-		beta_data = reactive({
-			read.delim(raw_data_path('RNA_Count_by_donor_and_samples_beta_cells.csv'), sep=',') %>%
+		bulk_beta_data = reactive({
+		  df = read.delim(clean_data_path('Bulk_RNA_sorted_beta_cell_1h_05052026.tsv'), sep='\t') %>%
 			pivot_longer(!gene, names_to='group', values_to='Value') %>%
-			separate(group, into=c("ID", "Type")) %>%
-			mutate(Type = case_when(Type == 'G11' ~ "H",
-															Type == 'G2' ~ 'L'
-			)) %>% 
+			separate(group, into=c("ID", "Treatment")) %>%
 			rename(Gene=gene) %>%
-			left_join(metadata(), by='ID') %>%
-		  rename(Treatment = Type)
+			left_join(metadata(), by='ID')
+		  
+		  return(df)
+		  
 		})
 		
-		return(beta_data)
+		sc_beta_data = reactive({
+		  read.delim(raw_data_path('RNA_Count_by_donor_and_samples_beta_cells.csv'), sep=',') %>%
+		    pivot_longer(!gene, names_to='group', values_to='Value') %>%
+		    separate(group, into=c("ID", "Treatment")) %>%
+		    mutate(Treatment = case_when(Treatment == 'G11' ~ "H",
+		                            Treatment == 'G2' ~ 'L'
+		    )) %>% 
+		    rename(Gene=gene) %>%
+		    left_join(sc_metadata(), by='ID')
+		})
+		
+		return(
+		  list(
+		    bulk = bulk_beta_data,
+		    sc = sc_beta_data
+		  )
+		)
 		
 	})
 }

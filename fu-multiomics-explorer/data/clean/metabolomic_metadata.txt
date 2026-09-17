@@ -1,7 +1,6 @@
-Donor	ID	Source	Age	BMI	Gender	ComparisonID	ComparisonID2
-1	2410	Alberta -clinical	28	32.7	F	4	3
-2	2406	Alberta -clinical	18	21	F	5	5
-3	2392	Alberta -clinical	40	24.3	M	1	1
-4	23481790	IIDP	48	28.4	M	2	2
-5	Pooled	NA	NA	NA	NA	NA	NA
-
+Donor	ID	Source	Age	BMI	Gender	ComparisonID
+1	2410	Alberta -clinical	28	32.7	F	3
+2	2406	Alberta -clinical	18	21	F	4
+3	2392	Alberta -clinical	40	24.3	M	2
+4	23481790	IIDP	48	28.4	M	1
+5	Pooled	NA	NA	NA	NA	NA

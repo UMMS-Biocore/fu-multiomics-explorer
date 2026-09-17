@@ -34,12 +34,12 @@ crossAssayTabUI <- function(id) {
       card_body(
         fluidRow(
          	column(1, "X-axis:"),
-         	column(3, selectizeInput(ns("x_type"), "Assay Type:", c("Gene" = "gene", "Protein" = "protein", "Metabolite" = "metabolite"), selected="protein")),
+         	column(3, selectizeInput(ns("x_type"), "Assay Type:", c("Gene - SCseq" = "sc_gene", "Gene - Bulkseq" = "bulk_gene", "Protein" = "protein", "Metabolite" = "metabolite"), selected="protein")),
          	column(8, selectizeInput(ns("x_value"), "Selection:", choices=NULL)),
         ),
         fluidRow(
          	column(1, "Y-axis:"),
-         	column(3, selectizeInput(ns("y_type"), "Assay Type:", c("Gene" = "gene", "Protein" = "protein", "Metabolite" = "metabolite"), selected='protein')),
+         	column(3, selectizeInput(ns("y_type"), "Assay Type:", c("Gene - SCseq" = "sc_gene", "Gene - Bulkseq" = "bulk_gene", "Protein" = "protein", "Metabolite" = "metabolite"), selected='protein')),
          	column(8, selectizeInput(ns("y_value"), "Selection:", choices=NULL)),
         ),
         plotOutput(ns("plot")) %>% withSpinner(image='spinner.gif')
@@ -52,8 +52,12 @@ crossAssayTabServer <- function(id, transcript_data, protein_data, metabolite_da
   
   moduleServer(id, function(input, output, session) {
     
-  	gene_options = reactive({
-  	  transcript_data() %>% distinct(Gene) %>% arrange(Gene) %>% pull(Gene)
+  	bulk_gene_options = reactive({
+  	  transcript_data$bulk() %>% distinct(Gene) %>% arrange(Gene) %>% pull(Gene)
+  	})
+  	
+  	sc_gene_options = reactive({
+  	  transcript_data$sc() %>% distinct(Gene) %>% arrange(Gene) %>% pull(Gene)
   	})
   	
   	protein_options = reactive({
@@ -70,13 +74,20 @@ crossAssayTabServer <- function(id, transcript_data, protein_data, metabolite_da
   	
     x_data = reactive({
       req(input$x_value)
-    	if(input$x_type=='gene') {
+    	if(input$x_type=='bulk_gene') {
     		return(
-    			transcript_data() %>% 
+    			transcript_data$bulk() %>% 
     			filter(Gene==input$x_value) %>% 
     			dplyr::select(-Gene) %>% 
     			rename(!!x_name() := Value)
     		)
+    	} else if(input$x_type=='sc_gene') {
+    	  return(
+    	    transcript_data$sc() %>% 
+    	      filter(Gene==input$x_value) %>% 
+    	      dplyr::select(-Gene) %>% 
+    	      rename(!!x_name() := Value)
+    	  )    	  
     	} else if(input$x_type=='protein') {
         return(
         	protein_data() %>% 
@@ -100,13 +111,20 @@ crossAssayTabServer <- function(id, transcript_data, protein_data, metabolite_da
     
     y_data = reactive({
       req(input$y_value)
-    	if(input$y_type=='gene') {
+    	if(input$y_type=='bulk_gene') {
     		return(
-    			transcript_data() %>% 
+    			transcript_data$bulk() %>% 
     				filter(Gene==input$y_value) %>% 
     				dplyr::select(-Gene) %>% 
     				rename(!!y_name() := Value)
     		)
+    	} else if(input$y_type=='sc_gene') {
+    	    return(
+    	      transcript_data$sc() %>% 
+    	        filter(Gene==input$y_value) %>% 
+    	        dplyr::select(-Gene) %>% 
+    	        rename(!!y_name() := Value)
+    	    )    	  
     	} else if(input$y_type=='protein') {
         return(
         	protein_data() %>% 
@@ -125,16 +143,14 @@ crossAssayTabServer <- function(id, transcript_data, protein_data, metabolite_da
     })
     
     merged_data = reactive({
-      if((input$x_type=='gene' & input$y_type=='metabolite') | (input$x_type=='metabolite' & input$y_type=='gene')) {
-        return(x_data() %>% inner_join(y_data(), by=c("ComparisonID2", "Treatment")))
-      } else {
         return(x_data() %>% inner_join(y_data(), by=c("ComparisonID", "Treatment")))
-      }
     })
-    
+
     x_options = reactive({
-    	if(input$x_type=='gene') {
-    		gene_options()
+    	if(input$x_type=='bulk_gene') {
+    		bulk_gene_options()
+    	} else if (input$x_type=='sc_gene') {
+    	  sc_gene_options()
     	} else if (input$x_type == 'protein') {
         protein_options()
       } else if (input$x_type == 'metabolite') {
@@ -148,9 +164,11 @@ crossAssayTabServer <- function(id, transcript_data, protein_data, metabolite_da
     })
     
     y_options = reactive({
-    	if(input$y_type=='gene') {
-    		gene_options()
-    	}else if (input$y_type == 'protein') {
+    	if(input$y_type=='bulk_gene') {
+    		bulk_gene_options()
+    	} else if(input$y_type=='sc_gene') {
+    	  sc_gene_options()
+    	} else if (input$y_type == 'protein') {
         protein_options()
       } else if (input$y_type == 'metabolite') {
         metabolite_options()
@@ -168,9 +186,9 @@ crossAssayTabServer <- function(id, transcript_data, protein_data, metabolite_da
     })
     
     observeEvent(merged_data(), {
-      updateSelectInput(session, 'color_by', "Color By", choices=c('None', GROUPING_COLUMNS))
-      updateSelectInput(session, 'shape_by', "Shape By", choices=c('None', GROUPING_COLUMNS))
-      updateSelectInput(session, 'facet_by', "Group By", choices=c('None', GROUPING_COLUMNS))
+      updateSelectInput(session, 'color_by', "Color By", choices=c('None', 'Treatment'))
+      updateSelectInput(session, 'shape_by', "Shape By", choices=c('None', 'Treatment'))
+      updateSelectInput(session, 'facet_by', "Group By", choices=c('None', 'Treatment'))
     })
     
     regression = reactive({

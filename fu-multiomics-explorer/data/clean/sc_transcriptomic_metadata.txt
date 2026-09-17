@@ -1,0 +1,4 @@
+Donor	ID	Source	Age	BMI	Gender	ComparisonID
+1	HP22068	Prodo	20	20.8	M	2
+2	HP22095	Prodo	33	25.9	M	1
+3	HP22182	Prodo	48	36.4	F	5

@@ -1,0 +1,6 @@
+Donor	ID	Source	Age	BMI	Gender	ComparisonID
+1	UWHI366R	IIDP	37	19.5	M	3
+2	H2621	Alberta-clinical	26	26.5	M	2
+3	HP25311	Prodo	52	20.5	M	1
+4	HU1327	Prodo	49	27.1	M	1
+5	HP25337	Prodo	62	28.8	M	1
